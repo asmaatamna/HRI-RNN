@@ -6,12 +6,12 @@ import torch.optim as optim
 from torch.utils.data.dataset import Dataset
 import numpy as np
 import sklearn.metrics
-import SED_RNN_architectures
+import modules
+import hri_dataset
 import os
 import argparse
-# from pathlib import Path
 
-# Limit number of threads used for parallelizing CPU operations to 1
+# Limit number of threads created to parallelize CPU operations to 1
 torch.set_num_threads(1)
 
 # Parse command line arguments
@@ -56,7 +56,7 @@ data_dir = './HRI-data/' # str(Path.home()) + '/' + 'User-engagement-decrease-de
 res_dir = './'
 
 # Whether to use attention in the models or not
-attention_on = 0 # 0: no attention; 1: SimpleAttention; 2: MatchingAttention
+attention_on = 0 # 0: no attention, 1: SimpleAttention, 2: MatchingAttention
 
 # Set filenames accordingly
 if attention_on == 1:
@@ -73,21 +73,11 @@ if not user_data_only and architecture == 'SimpleRNN':
 else:
     fname_udata = ''
 
-# If True, only use data sequences where the robot speaks at least once
-robot_speaking_only = False
+X_train = np.load(data_dir + 'X_train' + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold) + '.npy', allow_pickle=True)
+Y_train = np.load(data_dir + 'Y_train' + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold) + '.npy', allow_pickle=True)
 
-# Load train and validation data
-if robot_speaking_only:
-    fname = '_robot_speaking_only'
-else:
-    fname = ''
-
-
-X_train = np.load(data_dir + 'X_train' + fname + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold) + '.npy', allow_pickle=True)
-Y_train = np.load(data_dir + 'Y_train' + fname + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold) + '.npy', allow_pickle=True)
-
-X_val = np.load(data_dir + 'X_validation' + fname + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold) + '.npy', allow_pickle=True)
-Y_val = np.load(data_dir + 'Y_validation' + fname + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold) + '.npy', allow_pickle=True)
+X_val = np.load(data_dir + 'X_validation' + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold) + '.npy', allow_pickle=True)
+Y_val = np.load(data_dir + 'Y_validation' + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold) + '.npy', allow_pickle=True)
 
 # Model parameters
 input_dim = X_train[0].shape[-1]
@@ -104,8 +94,8 @@ if save_training_info:
     validation_losses = []
 
 # Create (PyTorch) train & validation data sets
-train_dataset = SED_RNN_architectures.HRIDataset(X_train, Y_train)
-validation_dataset = SED_RNN_architectures.HRIDataset(X_val, Y_val)
+train_dataset = hri_dataset.HRIDataset(X_train, Y_train)
+validation_dataset = hri_dataset.HRIDataset(X_val, Y_val)
 
 # Get all labels
 # Proper way to do it. Returns a sorted array of unique elements of the array
@@ -132,8 +122,8 @@ train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_s
 validation_dataloader = torch.utils.data.DataLoader(validation_dataset, batch_size=len(validation_dataset), pin_memory=pin_memory)
 
 # Set model parameters for the training 
-model = SED_RNN_architectures.ClassificationModule(input_dim, hidden_dims, architecture=architecture, user_data_only=user_data_only,
-                                                   use_gpu=gpu_available, attend_over_context=attention_on)
+model = modules.ClassificationModule(input_dim, hidden_dims, architecture=architecture, user_data_only=user_data_only,
+                                     use_gpu=gpu_available, attend_over_context=attention_on)
 model.to(device)
 model.double()
 
@@ -202,14 +192,14 @@ for epoch in range(epochs):
             # Save learned model
             torch.save(model.state_dict(), res_dir + 'Output/Model_' + architecture + attention + '_tau_' + str(tau) + '_eta_' + str(eta) +
                        '_' + str(epochs) + '_epochs_hdim_' + str(hidden_dims) + '_lr_' + str(lr) + '_weight_decay_' + str(weight_decay) +
-                       fname + '_' + fname_udata + str(fold))
+                       '_' + fname_udata + str(fold))
 
             print("Saved model at epoch {:}. Validation F1 score: {:.2f}".format(epoch + 1, best_validation_f1_score))
 
 if save_training_info:
     np.savetxt(res_dir + 'Train-losses_' + architecture + attention + '_tau_' + str(tau) + '_eta_' + str(eta) + '_' + str(epochs) +
-               '_epochs_hdim_' + str(hidden_dims) + '_lr_' + str(lr) + '_weight_decay_' + str(weight_decay) + fname +
+               '_epochs_hdim_' + str(hidden_dims) + '_lr_' + str(lr) + '_weight_decay_' + str(weight_decay) +
                '_' + fname_udata + str(fold) + '.txt', train_losses)
     np.savetxt(res_dir + 'Validation-losses_' + architecture + attention + '_tau_' + str(tau) + '_eta_' + str(eta) + '_' + str(epochs) +
-               '_epochs_hdim_' + str(hidden_dims) + '_lr_' + str(lr) + '_weight_decay_' + str(weight_decay) + fname +
+               '_epochs_hdim_' + str(hidden_dims) + '_lr_' + str(lr) + '_weight_decay_' + str(weight_decay) +
                '_' + fname_udata + str(fold) + '.txt', validation_losses)

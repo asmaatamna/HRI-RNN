@@ -1,9 +1,9 @@
 import torch
 import numpy as np
 import sklearn.metrics
-import SED_RNN_architectures
 import argparse
-from pathlib import Path
+import modules
+import hri_dataset
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='Single run of our SED recurrent architecture')
@@ -13,7 +13,6 @@ parser.add_argument('eta', type=int, default=2) # tau data parameter
 parser.add_argument('n_folds', type=int, default=10) # Train data fold number
 parser.add_argument('lr', type=float, default=1e-3) # Optimizer learning rate
 parser.add_argument('weight_decay', type=float, default=0.) # L2 regularization weight for optimizer
-# parser.add_argument('projection_dim', type=int) # Dimension of projection space before GRU cells
 parser.add_argument('hidden_dims', nargs='+', type=int) # Dimensions of RNN's hidden states
 parser.add_argument('architecture', type=str) # Dimensions of RNN's hidden states
 
@@ -94,7 +93,7 @@ for fold in np.arange(1, n_folds + 1):
     input_dim = X_test[0].shape[-1]
     
     # (PyTorch) dataset
-    test_dataset = SED_RNN_architectures.HRIDataset(X_test, Y_test)
+    test_dataset = hri_dataset.HRIDataset(X_test, Y_test)
 
     # Data loader and (possibly) over-/down-sample test data
     labels = np.array([0., 1.])
@@ -114,7 +113,7 @@ for fold in np.arange(1, n_folds + 1):
         test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size)
     
     # Load trained model for evaluation
-    model = SED_RNN_architectures.ClassificationModule(input_dim, hidden_dims, architecture=architecture, attend_over_context=attention_on)
+    model = modules.ClassificationModule(input_dim, hidden_dims, architecture=architecture, attend_over_context=attention_on)
     model.double()
 
     model.load_state_dict(torch.load(res_dir + 'Output/Model_' + architecture + attention + '_tau_' + str(tau) + '_eta_' + str(eta) +
@@ -154,33 +153,3 @@ print("Recall: {:.2f} ± {:.3f}".format(np.mean(100 * recalls), np.std(100 * rec
 print("Precision: {:.2f} ± {:.3f}".format(np.mean(100 * precisions), np.std(100 * precisions))) # Precision
 print("ROC AUC score: {:.2f} ± {:.3f}".format(np.mean(100 * roc_auc_scores), np.std(100 * roc_auc_scores))) # ROC AUC
 print("Accuracy: {:.2f} ± {:.3f}".format(np.mean(100 * accuracies), np.std(100 * accuracies))) # Accuracy
-
-# Save test performances in a .txt files
-if 1 < 3:
-    np.savetxt(res_dir + performance_dir + 'Test-accuracies_' + architecture + attention + '_tau_' + str(tau) + '_eta_' + str(eta) + '_' + str(n_folds) + '-fold_cv_' + str(epochs) + '_epochs_hdim_' + str(hidden_dims) +
-               # '_projection_dim_' + str(projection_dim) +
-               '_lr_' + str(lr) + '_weight_decay_' + str(weight_decay) + fname + fname_udata + '.txt', accuracies)
-
-    np.savetxt(res_dir + performance_dir + 'Test-f1-scores_' + architecture + attention + '_tau_' + str(tau) + '_eta_' + str(eta) + '_' + str(n_folds) + '-fold_cv_' + str(epochs) + '_epochs_hdim_' + str(hidden_dims) +
-               # '_projection_dim_' + str(projection_dim) +
-               '_lr_' + str(lr) + '_weight_decay_' + str(weight_decay) + fname + fname_udata + '.txt', F1_scores)
-
-    np.savetxt(res_dir + performance_dir + 'Test-f1-scores-all-classes_' + architecture + attention + '_tau_' + str(tau) + '_eta_' + str(eta) + '_' + str(n_folds) + '-fold_cv_' + str(epochs) + '_epochs_hdim_' + str(hidden_dims) +
-               # '_projection_dim_' + str(projection_dim) +
-               '_lr_' + str(lr) + '_weight_decay_' + str(weight_decay) + fname + fname_udata + '.txt', F1_scores_all_classes)
-
-    np.savetxt(res_dir + performance_dir + 'Test-f1-scores-macro_' + architecture + attention + '_tau_' + str(tau) + '_eta_' + str(eta) + '_' + str(n_folds) + '-fold_cv_' + str(epochs) + '_epochs_hdim_' + str(hidden_dims) +
-               # '_projection_dim_' + str(projection_dim) +
-               '_lr_' + str(lr) + '_weight_decay_' + str(weight_decay) + fname + fname_udata + '.txt', F1_scores_macro)
-
-    np.savetxt(res_dir + performance_dir + 'Test-precisions_' + architecture + attention + '_tau_' + str(tau) + '_eta_' + str(eta) + '_' + str(n_folds) + '-fold_cv_' + str(epochs) + '_epochs_hdim_' + str(hidden_dims) +
-               # '_projection_dim_' + str(projection_dim) +
-               '_lr_' + str(lr) + '_weight_decay_' + str(weight_decay) + fname + fname_udata + '.txt', precisions)
-
-    np.savetxt(res_dir + performance_dir + 'Test-recalls_' + architecture + attention + '_tau_' + str(tau) + '_eta_' + str(eta) + '_' + str(n_folds) + '-fold_cv_' + str(epochs) + '_epochs_hdim_' + str(hidden_dims) +
-               # '_projection_dim_' + str(projection_dim) +
-               '_lr_' + str(lr) + '_weight_decay_' + str(weight_decay) + fname + fname_udata + '.txt', recalls)
-
-    np.savetxt(res_dir + performance_dir + 'Test-roc-auc-scores_' + architecture + attention + '_tau_' + str(tau) + '_eta_' + str(eta) + '_' + str(n_folds) + '-fold_cv_' + str(epochs) + '_epochs_hdim_' + str(hidden_dims) +
-               # '_projection_dim_' + str(projection_dim) +
-               '_lr_' + str(lr) + '_weight_decay_' + str(weight_decay) + fname + fname_udata + '.txt', roc_auc_scores)
