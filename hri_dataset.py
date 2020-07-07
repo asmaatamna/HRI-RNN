@@ -4,7 +4,7 @@ Wraps HRI data around a PyTorch Dataset
 """
 class HRIDataset(Dataset):
     """
-    Creates a HRI dataset using HRI user data
+    Creates a HRI dataset from HRI data
     """
 
     def __init__(self, data, labels):
