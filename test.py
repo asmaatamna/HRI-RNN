@@ -5,151 +5,126 @@ import argparse
 import modules
 import hri_dataset
 
-# Parse command line arguments
-parser = argparse.ArgumentParser(description='Single run of our SED recurrent architecture')
-parser.add_argument('epochs', type=int, default=10) # Number of training epochs
-parser.add_argument('tau', type=int, default=5) # tau data parameter
-parser.add_argument('eta', type=int, default=2) # tau data parameter
-parser.add_argument('n_folds', type=int, default=10) # Train data fold number
-parser.add_argument('lr', type=float, default=1e-3) # Optimizer learning rate
-parser.add_argument('weight_decay', type=float, default=0.) # L2 regularization weight for optimizer
-parser.add_argument('hidden_dims', nargs='+', type=int) # Dimensions of RNN's hidden states
-parser.add_argument('architecture', type=str) # Dimensions of RNN's hidden states
 
-args = parser.parse_args()
+def main():
+    if __name__ == '__main__':
 
-# Get number of training epochs
-epochs = args.epochs
+        # Parse command line arguments
+        parser = argparse.ArgumentParser(description='Evaluate selected model on HRI test data folds')
+        parser.add_argument('--architecture', type=str, default='HriRNN')  # Model to train (HriRNN or SimpleRNN)
+        parser.add_argument('--hidden_dims', nargs='+', type=int, default=[32, 32])  # Size of RNN's hidden states
+        parser.add_argument('--attention_on', type=int, default=0)  # Whether to use attention or not
+        # 0: no attention, 1: SimpleAttention, 2: MatchingAttention
+        parser.add_argument('--tau', type=int, default=5)  # Length in sec of HRI sequences
+        parser.add_argument('--eta', type=int, default=2)  # Backward time horizon in sec used to label data
+        parser.add_argument('--n_folds', type=int, default=5)  # Number of cross-validation folds. Default: 5
+        parser.add_argument('--epochs', type=int, default=50)  # Number of training epochs
+        parser.add_argument('--lr', type=float, default=1e-3)  # Optimizer learning rate
+        parser.add_argument('--weight_decay', type=float, default=0.)  # L2 regularization weight
 
-# Get tau and eta values
-tau = args.tau
-eta = args.eta
+        args = parser.parse_args()
 
-# Number of cross validation folds (3-cv for now)
-n_folds = args.n_folds
+        # User data directory
+        data_dir = './HRI-data/'
+        res_dir = './Output/'
 
-# Get learning rate and weight decay for optimizer
-lr = args.lr
-weight_decay = args.weight_decay
+        # Prepare names of files to load
+        user_data_only = False  # If true, robot audio is masked in SimpleRNN
+        if not user_data_only and args.architecture == 'SimpleRNN':
+            udata = ''
+        else:
+            udata = 'user_data_only_'
 
-# Dimensions of RNN hidden states
-hidden_dims = args.hidden_dims
+        if args.attention_on == 1:
+            attention = '_SimpleAttention'
+        elif args.attention_on == 2:
+            attention = '_MatchingAttention'
+        else:
+            attention = ''
 
-# Dimension of projection space before GRU cells
-# projection_dim = args.projection_dim
+        # Performance arrays
+        accuracies = np.array([])
+        precisions = np.array([])
+        recalls = np.array([])
+        F1_scores = np.array([])
+        roc_auc_scores = np.array([])
 
-# Select an architecture
-architecture = args.architecture # 'HriRNN' or 'TransformerRNN' for now
+        for fold in np.arange(1, args.n_folds + 1):
+            # Load test data
+            X_test = np.load(
+                data_dir + 'X_test' + '_tau_' + str(args.tau) + '_eta_' + str(args.eta) + '_fold_' + str(fold) +
+                '.npy', allow_pickle=True)
+            Y_test = np.load(
+                data_dir + 'Y_test' + '_tau_' + str(args.tau) + '_eta_' + str(args.eta) + '_fold_' + str(fold) +
+                '.npy', allow_pickle=True)
 
-# User data directory
-res_dir = './' # str(Path.home()) + '/' + 'User-engagement-decrease-detection' + '/'
-performance_dir = 'Output/performance-measures/'
-data_dir = './HRI-data/'
+            # Set batch size
+            batch_size = len(Y_test)
 
-# Performance lists
-accuracies = []
-precisions = []
-recalls = []
-F1_scores = [] # Default average: 'binary'
-F1_scores_all_classes = [] # average: None
-F1_scores_macro = [] # average: 'macro'
-roc_auc_scores = [] # Default average: 'macro'
+            # Model parameters
+            input_dim = X_test[0].shape[-1]
 
-rebalance = False # Oversample test set (SED class)
-robot_speaking_only = False # If True, load data where all sequences contain at least 1 robot audio
+            # (PyTorch) dataset
+            test_dataset = hri_dataset.HRIDataset(X_test, Y_test)
 
-if robot_speaking_only:
-    fname = '_robot_speaking_only'
-else:
-    fname = ''
+            # Prepare test data loader
+            test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size)
 
-# If true, robot audio is masked in SimpleRNN
-user_data_only = False
-if not user_data_only and architecture == 'SimpleRNN':
-    fname_udata = '_all_data'
-else:
-    fname_udata = ''
+            # Load trained model for evaluation
+            model = modules.ClassificationModule(input_dim, args.hidden_dims, architecture=args.architecture,
+                                                 attend_over_context=args.attention_on)
+            model.double()
 
-attention_on = 0 # 0: no attention; 1: SimpleAttention; 2: MatchingAttention
-if attention_on == 1:
-    attention = '_SimpleAttention'
-elif attention_on == 2:
-    attention = '_MatchingAttention'
-else:
-    attention = ''
+            model_name = args.architecture + attention + '_tau_' + str(args.tau) + '_eta_' + str(args.eta) + '_hdim_' +\
+                         str(args.hidden_dims) + '_lr_' + str(args.lr) + '_weight_decay_' + str(args.weight_decay) +\
+                         '_' + str(args.epochs) + '_epochs_' + udata
 
-for fold in np.arange(1, n_folds + 1):
-    
-    # Load test data
-    X_test = np.load(data_dir + 'X_test' + fname + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold) + '.npy',
-                      allow_pickle=True)
-    Y_test = np.load(data_dir + 'Y_test' + fname + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold) + '.npy',
-                      allow_pickle=True)
+            model.load_state_dict(torch.load(res_dir + 'Model_' + model_name + str(args.fold),
+                                             map_location=torch.device('cpu')))
 
-    # Set batch size
-    batch_size = len(Y_test)
+            # Evaluate model on current test data fold
+            accuracy, F1_score, precision, recall, roc_auc_score = test_model(model, test_dataloader)
 
-    # Model parameters
-    input_dim = X_test[0].shape[-1]
-    
-    # (PyTorch) dataset
-    test_dataset = hri_dataset.HRIDataset(X_test, Y_test)
+            accuracies = np.append(accuracies, accuracy)
+            F1_scores = np.append(F1_scores, F1_score)
+            precisions = np.append(precisions, precision)
+            recalls = np.append(recalls, recall)
+            roc_auc_scores = np.append(roc_auc_scores, roc_auc_score)
 
-    # Data loader and (possibly) over-/down-sample test data
-    labels = np.array([0., 1.])
+        # Save test performance (mean & standard deviation) in a text file
+        file = open("Test_performance_" + model_name + ".txt", "w")
+        file.write("F1 score: {:.2f} ± {:.3f}".format(np.mean(100 * F1_scores), np.std(100 * F1_scores)))
+        file.write("Recall: {:.2f} ± {:.3f}".format(np.mean(100 * recalls), np.std(100 * recalls)))
+        file.write("Precision: {:.2f} ± {:.3f}".format(np.mean(100 * precisions), np.std(100 * precisions)))
+        file.write("ROC AUC score: {:.2f} ± {:.3f}".format(np.mean(100 * roc_auc_scores), np.std(100 * roc_auc_scores)))
+        file.write("Accuracy: {:.2f} ± {:.3f}".format(np.mean(100 * accuracies), np.std(100 * accuracies)))
+        file.close()
 
-    # Compute weights for over-/down-sampling
-    if rebalance:
-        counts = []
-        for l in labels:
-            counts.append(np.count_nonzero(Y_test == l))
-        weights = 1. - torch.tensor(counts).double() / sum(counts)
 
-        sampler = torch.utils.data.sampler.WeightedRandomSampler(weights=weights[test_dataset.labels],
-                                                                 num_samples=len(test_dataset), replacement=True)
+def test_model(model, test_dataloader):
+    """
+    Evaluates model on test data loaded by test_dataloader
+    :param model: Model to evaluate
+    :param test_dataloader: Loads test data
+    :return: Test accuracy, F1 score, precision, recall, and ROC AUC score
+    """
 
-        test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, sampler=sampler)
-    else:
-        test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size)
-    
-    # Load trained model for evaluation
-    model = modules.ClassificationModule(input_dim, hidden_dims, architecture=architecture, attend_over_context=attention_on)
-    model.double()
-
-    model.load_state_dict(torch.load(res_dir + 'Output/Model_' + architecture + attention + '_tau_' + str(tau) + '_eta_' + str(eta) +
-           '_' + str(epochs) + '_epochs_hdim_' + str(hidden_dims) +
-           '_lr_' + str(lr) + '_weight_decay_' + str(weight_decay) + fname + fname_udata + '_' + str(fold), map_location=torch.device('cpu')))
-        
     model.eval()
 
     test_data, test_target = next(iter(test_dataloader))
     test_output = model(test_data.permute(1, 0, 2))
 
     # Accuracy
-    accuracies.append(sklearn.metrics.accuracy_score(test_target.numpy(), torch.round(test_output).detach().numpy()))
+    accuracy = sklearn.metrics.accuracy_score(test_target.numpy(), torch.round(test_output).detach().numpy())
 
-    # Different test F1 scores
-    F1_scores.append(sklearn.metrics.f1_score(test_target.numpy(), torch.round(test_output).detach().numpy()))
-    F1_scores_all_classes.append(sklearn.metrics.f1_score(test_target.numpy(), torch.round(test_output).detach().numpy(), average=None))
-    F1_scores_macro.append(sklearn.metrics.f1_score(test_target.numpy(), torch.round(test_output).detach().numpy(), average='macro'))
+    # F1 score
+    F1_score = sklearn.metrics.f1_score(test_target.numpy(), torch.round(test_output).detach().numpy())
 
     # Precision and recall
-    precisions.append(sklearn.metrics.precision_score(test_target.numpy(), torch.round(test_output).detach().numpy()))
-    recalls.append(sklearn.metrics.recall_score(test_target.numpy(), torch.round(test_output).detach().numpy()))
+    precision = sklearn.metrics.precision_score(test_target.numpy(), torch.round(test_output).detach().numpy())
+    recall = sklearn.metrics.recall_score(test_target.numpy(), torch.round(test_output).detach().numpy())
 
-    # ROC AUC scores
-    roc_auc_scores.append(sklearn.metrics.roc_auc_score(test_target.numpy(), test_output.detach().numpy()))
+    # ROC AUC score
+    roc_auc_score = sklearn.metrics.roc_auc_score(test_target.numpy(), test_output.detach().numpy())
 
-# Print important metrics (mean & standard deviation)
-F1_scores = np.array(F1_scores)
-recalls = np.array(recalls)
-precisions = np.array(precisions)
-roc_auc_scores = np.array(roc_auc_scores)
-accuracies = np.array(accuracies)
-
-print("---------- {:}'s performance statistics, hidden dims: {:}, tau: {:}, eta: {:} ----------".format(architecture, hidden_dims, tau, eta))
-print("F1 score: {:.2f} ± {:.3f}".format(np.mean(100 * F1_scores), np.std(100 * F1_scores))) # F1 score
-print("Recall: {:.2f} ± {:.3f}".format(np.mean(100 * recalls), np.std(100 * recalls))) # Recall
-print("Precision: {:.2f} ± {:.3f}".format(np.mean(100 * precisions), np.std(100 * precisions))) # Precision
-print("ROC AUC score: {:.2f} ± {:.3f}".format(np.mean(100 * roc_auc_scores), np.std(100 * roc_auc_scores))) # ROC AUC
-print("Accuracy: {:.2f} ± {:.3f}".format(np.mean(100 * accuracies), np.std(100 * accuracies))) # Accuracy
+    return accuracy, F1_score, precision, recall, roc_auc_score

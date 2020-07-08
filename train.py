@@ -22,7 +22,7 @@ def main():
         # Parse command line arguments
         parser = argparse.ArgumentParser(description='Train selected model on one fold of HRI data for SED detection')
         parser.add_argument('--architecture', type=str, default='HriRNN')  # Model to train (HriRNN or SimpleRNN)
-        parser.add_argument('--hidden_dims', nargs='+', type=int, default=[32, 32])  # Dimensions of RNN's hidden states
+        parser.add_argument('--hidden_dims', nargs='+', type=int, default=[32, 32])  # Size of RNN's hidden states
         parser.add_argument('--attention_on', type=int, default=0)  # Whether to use attention or not
         # 0: no attention, 1: SimpleAttention, 2: MatchingAttention
         parser.add_argument('--tau', type=int, default=5)  # Length in sec of HRI sequences
@@ -106,8 +106,8 @@ def main():
         else:
             udata = 'user_data_only_'
 
-        model_name = args.architecture + attention + '_tau_' + str(args.tau) + '_eta_' + str(args.eta) + '_hdim_' +\
-                     str(args.hidden_dims) + '_lr_' + str(args.lr) + '_weight_decay_' + str(args.weight_decay) + '_' +\
+        model_name = args.architecture + attention + '_tau_' + str(args.tau) + '_eta_' + str(args.eta) + '_hdim_' + \
+                     str(args.hidden_dims) + '_lr_' + str(args.lr) + '_weight_decay_' + str(args.weight_decay) + '_' + \
                      str(args.epochs) + '_epochs_' + udata + str(args.fold)
 
         train_model(model, train_dataloader, validation_dataloader, criterion, optimizer, model_name, args.epochs,
@@ -213,6 +213,8 @@ def train_model(model,
 
                 print(
                     "Model saved at epoch {:}. Validation F1 score: {:.2f}".format(epoch + 1, best_validation_f1_score))
+
+    print("End of training")
 
     if save_learning_curves:
         np.savetxt(res_dir + 'Train-losses_' + trained_model_name + '.txt', train_losses)
