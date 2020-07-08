@@ -13,7 +13,7 @@ def main():
         parser = argparse.ArgumentParser(description='Create cross validation data folds (train, validation, test)')
         parser.add_argument('tau', type=int, default=5)
         parser.add_argument('eta', type=int, default=2)
-        parser.add_argument('-nf', '--n_folds', type=int, default=5)
+        parser.add_argument('--n_folds', type=int, default=5)
 
         args = parser.parse_args()
 

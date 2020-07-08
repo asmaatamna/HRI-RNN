@@ -2,10 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class MLP(nn.Module):
     """
     MLP with one hidden layer
     """
+
     def __init__(self, in_dim, h_dim, out_dim):
         super(MLP, self).__init__()
         self.deterministic_output = nn.Sequential(
@@ -17,6 +19,7 @@ class MLP(nn.Module):
     def forward(self, x):
         y = self.deterministic_output(x)
         return y
+
 
 class SimpleAttention(nn.Module):
     """
@@ -38,7 +41,7 @@ class SimpleAttention(nn.Module):
         :param x: Dummy argument for compatibility with MatchingAttention
         :param mask: (seq_len, batch). Array of boolean values indicating what a token should be considered to compute attention (True)
         """
-        Z = self.linear(C).permute(1, 2, 0) # (batch, 1, seq_len)
+        Z = self.linear(C).permute(1, 2, 0)  # (batch, 1, seq_len)
 
         # Select sequence elements to which apply attention
         #
@@ -53,11 +56,12 @@ class SimpleAttention(nn.Module):
         #     mask_ = mask.permute(1, 0).unsqueeze(1)  # mask_: (batch, 1, seq_len)
         #     Z[~mask_] = -float('inf')
 
-        alpha = F.softmax(Z, dim=2) # (batch, 1, seq_len)
-        attention_pool = torch.bmm(alpha, C.transpose(0, 1))[:, 0, :] # (batch, dim)
+        alpha = F.softmax(Z, dim=2)  # (batch, 1, seq_len)
+        attention_pool = torch.bmm(alpha, C.transpose(0, 1))[:, 0, :]  # (batch, dim)
 
         # TODO: Return attention weights for logging
-        return attention_pool # , alpha[:, 0, :] # alpha: (batch, seq_len)
+        return attention_pool  # , alpha[:, 0, :] # alpha: (batch, seq_len)
+
 
 class MatchingAttention(nn.Module):
     """
@@ -83,10 +87,10 @@ class MatchingAttention(nn.Module):
         :param mask: (seq_len, batch). Array of boolean values indicating what a token should be considered to compute attention (True)
         :return: attention_pool: (batch, mem_dim)
         """
-        C_ = C.permute(1, 2, 0) # C_: (batch, mem_dim, seq_len)
-        x_ = x.unsqueeze(1) # x_: (batch, 1, input_dim)
+        C_ = C.permute(1, 2, 0)  # C_: (batch, mem_dim, seq_len)
+        x_ = x.unsqueeze(1)  # x_: (batch, 1, input_dim)
 
-        Z = torch.bmm(self.linear(x_), C_) # (batch, 1, seq_len)
+        Z = torch.bmm(self.linear(x_), C_)  # (batch, 1, seq_len)
 
         # Select sequence elements to which apply attention
         #
@@ -101,11 +105,12 @@ class MatchingAttention(nn.Module):
         #     mask_ = mask.permute(1, 0).unsqueeze(1)  # mask_: (batch, 1, seq_len)
         #     Z[~mask_] = -float('inf')
 
-        alpha = F.softmax(Z, dim=2) # (batch, 1, seq_len)
-        attention_pool = torch.bmm(alpha, C_.transpose(1, 2))[:, 0, :] # (batch, mem_dim)
+        alpha = F.softmax(Z, dim=2)  # (batch, 1, seq_len)
+        attention_pool = torch.bmm(alpha, C_.transpose(1, 2))[:, 0, :]  # (batch, mem_dim)
 
         # TODO: Return attention weights for logging
-        return attention_pool # , alpha[:, 0, :] # alpha: (batch, seq_len)
+        return attention_pool  # , alpha[:, 0, :] # alpha: (batch, seq_len)
+
 
 class SimpleRNN(nn.Module):
     """
@@ -119,7 +124,7 @@ class SimpleRNN(nn.Module):
         self.user_data_only = user_data_only
         self.attend_over_context = attend_over_context
 
-        if attend_over_context == 1: # For now, I only use SimpleAttention for the baseline
+        if attend_over_context == 1:  # For now, I only use SimpleAttention for the baseline
             self.attention = SimpleAttention(hidden_dim)
 
         self.rnn = nn.GRU(input_dim, hidden_dim, num_layers=1)
@@ -133,10 +138,11 @@ class SimpleRNN(nn.Module):
         """
         if self.user_data_only:
             # Mask robot audio in input data
-            for i in range(data.shape[0]): # data is of shape (seq_length, batch_size, nb_features)
+            for i in range(data.shape[0]):  # data is of shape (seq_length, batch_size, nb_features)
                 for j in range(data.shape[1]):
-                    if data[i][j][-1] > 0: # User is listening to robot
-                        data[i][j][32:64] = torch.zeros(64 - 32) # Mask robot audio (audio features are between indices 32--63)
+                    if data[i][j][-1] > 0:  # User is listening to robot
+                        data[i][j][32:64] = torch.zeros(
+                            64 - 32)  # Mask robot audio (audio features are between indices 32--63)
 
         output, h = self.rnn(data)
         # output: (seq_len, batch_size, hidden_dim). All intermediate hidden states
@@ -145,12 +151,13 @@ class SimpleRNN(nn.Module):
         if self.attend_over_context == 1:
             # We apply attention over all intermediate hidden states
             res = self.attention(output)
-        else: # Any value other than 1 is considered as "no attention"
+        else:  # Any value other than 1 is considered as "no attention"
             # We return the last hidden state of the GRU's last layer
             h = h.permute(1, 0, 2).mean(dim=1)  # h: (batch_size, 1, hidden_dim)
             res = h.view(-1, self.hidden_dim)  # res: (batch_size, hidden_dim)
 
         return res
+
 
 class HriRNNCell(nn.Module):
     def __init__(self, input_dim, u_dim, c_dim, attend_over_context=0):
@@ -166,7 +173,7 @@ class HriRNNCell(nn.Module):
         self.u_dim = u_dim
         self.c_dim = c_dim
 
-        self.context_cell = nn.GRUCell(32 + u_dim, c_dim) # 32: number of audio features
+        self.context_cell = nn.GRUCell(32 + u_dim, c_dim)  # 32: number of audio features
         self.user_state_cell = nn.GRUCell(input_dim + c_dim, u_dim)
 
         self.attend_over_context = attend_over_context
@@ -199,13 +206,14 @@ class HriRNNCell(nn.Module):
         c = torch.zeros(data.size()[0], self.c_dim).double() if c_hist.size()[0] == 0 else c_hist[-1]
 
         # Update context only if the robot is speaking. Otherwise, we keep past the previous context
-        c[indices_robot_is_speaking] = self.context_cell(torch.cat((data[indices_robot_is_speaking][:, 32:64], u_prev[indices_robot_is_speaking]), dim=1),
-                                                         torch.zeros(indices_robot_is_speaking.size()[0], self.c_dim).double() if c_hist.size()[0] == 0 else
-                                                         c_hist[-1][indices_robot_is_speaking])
+        c[indices_robot_is_speaking] = self.context_cell(
+            torch.cat((data[indices_robot_is_speaking][:, 32:64], u_prev[indices_robot_is_speaking]), dim=1),
+            torch.zeros(indices_robot_is_speaking.size()[0], self.c_dim).double() if c_hist.size()[0] == 0 else
+            c_hist[-1][indices_robot_is_speaking])
 
         if self.attend_over_context:
             if c_hist.size()[0] == 0:
-                input_c = torch.zeros(data.size()[0], self.c_dim).type(data.type()) # (batch, c_dim)
+                input_c = torch.zeros(data.size()[0], self.c_dim).type(data.type())  # (batch, c_dim)
             else:
                 input_c = self.attention(c_hist, data_u)
         else:
@@ -213,6 +221,7 @@ class HriRNNCell(nn.Module):
         u = self.user_state_cell(torch.cat((data_u, input_c), dim=1), u_prev)
 
         return u, c
+
 
 class HriRNN(nn.Module):
     def __init__(self, input_dim, u_dim, c_dim, use_gpu=False, attend_over_context=0):
@@ -244,13 +253,14 @@ class HriRNN(nn.Module):
 
         # Initialize hidden states for context & user GRU cells (t = 0)
         if self.use_gpu:
-            ut = torch.zeros(sequence.size()[1], self.u_dim).cuda().double() # size of ut: (batch, u_dim)
-            c_hist = torch.zeros(0).cuda().double()  # Initialize context vectors history (empty). Must be of size (t - 1, batch, c_dim)
+            ut = torch.zeros(sequence.size()[1], self.u_dim).cuda().double()  # size of ut: (batch, u_dim)
+            c_hist = torch.zeros(
+                0).cuda().double()  # Initialize context vectors history (empty). Must be of size (t - 1, batch, c_dim)
         else:
             ut = torch.zeros(sequence.size()[1], self.u_dim).double()
             c_hist = torch.zeros(0).double()
 
-        for t, xt in enumerate(sequence): # xt is of size (batch, input_dim)
+        for t, xt in enumerate(sequence):  # xt is of size (batch, input_dim)
             ut, ct = self.hri_cell(xt, ut, c_hist)
 
             # Update context history
@@ -258,12 +268,15 @@ class HriRNN(nn.Module):
 
         return ut
 
+
 class ClassificationModule(nn.Module):
     """
     HRI-RNN or baseline GRU followed by a dense layer (MLP) for classification
     (signs of user engagement decrease detection)
     """
-    def __init__(self, input_dim, hidden_dims=None, architecture='SimpleRNN', use_gpu=False, user_data_only=False, attend_over_context=0):
+
+    def __init__(self, input_dim, hidden_dims=None, architecture='SimpleRNN', use_gpu=False, user_data_only=False,
+                 attend_over_context=0):
         # input_dim: dimension of the feature space
         # hidden_dims: dimensions of the embedding spaces (RNN states)
         super(ClassificationModule, self).__init__()
@@ -273,13 +286,15 @@ class ClassificationModule(nn.Module):
         # Sequence embedding module
         if architecture == 'HriRNN':
             assert len(hidden_dims) == 2
-            self.module = HriRNN(input_dim, hidden_dims[0], hidden_dims[1], self.use_gpu, attend_over_context=attend_over_context)
+            self.module = HriRNN(input_dim, hidden_dims[0], hidden_dims[1], self.use_gpu,
+                                 attend_over_context=attend_over_context)
 
             # Linear mapping that projects the data into a 1D space (binary classification)
             self.dense_layers = MLP(hidden_dims[0], hidden_dims[0] // 2, 1)
         else:
             # By default, the baseline GRU (SimpleRNN) is run
-            self.module = SimpleRNN(input_dim, hidden_dims[0], user_data_only=user_data_only, attend_over_context=attend_over_context)
+            self.module = SimpleRNN(input_dim, hidden_dims[0], user_data_only=user_data_only,
+                                    attend_over_context=attend_over_context)
             self.dense_layers = MLP(hidden_dims[0], hidden_dims[0] // 2, 1)
 
     def forward(self, sequence):
