@@ -7,23 +7,22 @@ import argparse
 
 
 def main():
-    if __name__ == '__main__':
 
-        # Parse command line arguments
-        parser = argparse.ArgumentParser(description='Create cross validation data folds (train, validation, test)')
-        parser.add_argument('tau', type=int, default=5)
-        parser.add_argument('eta', type=int, default=2)
-        parser.add_argument('--n_folds', type=int, default=5)
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Create cross validation data folds (train, validation, test)')
+    parser.add_argument('--tau', type=int, default=5)
+    parser.add_argument('--eta', type=int, default=2)
+    parser.add_argument('--n_folds', type=int, default=5)
 
-        args = parser.parse_args()
+    args = parser.parse_args()
 
-        # HRI data directory
-        data_dir = './HRI-data/'
+    # HRI data directory
+    data_dir = './HRI-data/'
 
-        if args.n_folds:
-            split_data_n_folds(data_dir, args.tau, args.eta, args.n_folds)
-        else:
-            split_data_n_folds(data_dir, args.tau, args.eta)
+    if args.n_folds:
+        split_data_n_folds(data_dir, args.tau, args.eta, args.n_folds)
+    else:
+        split_data_n_folds(data_dir, args.tau, args.eta)
 
 
 def split_data_n_folds(data_dir, tau, eta, n_folds=5, seed=5):
@@ -63,10 +62,10 @@ def split_data_n_folds(data_dir, tau, eta, n_folds=5, seed=5):
         # Set 10% of training data for validation
         train_idx_bis, val_idx = train_test_split(train_idx, test_size=0.1, random_state=5)
 
-        X_train, X_test, X_val = np.concatenate(X_all_users[train_idx_bis]), np.concatenate(
-            X_all_users[test_idx]), np.concatenate(X_all_users[val_idx])
-        Y_train, Y_test, Y_val = np.concatenate(Y_all_users[train_idx_bis]), np.concatenate(
-            Y_all_users[test_idx]), np.concatenate(Y_all_users[val_idx])
+        X_train, X_test, X_val = np.concatenate(X_all_users[train_idx_bis]), np.concatenate(X_all_users[test_idx]),\
+                                 np.concatenate(X_all_users[val_idx])
+        Y_train, Y_test, Y_val = np.concatenate(Y_all_users[train_idx_bis]), np.concatenate(Y_all_users[test_idx]),\
+                                 np.concatenate(Y_all_users[val_idx])
 
         # Replace missing values with mean of corresponding feature & normalize data
         # (steps 1 & 2 below)
@@ -96,3 +95,6 @@ def split_data_n_folds(data_dir, tau, eta, n_folds=5, seed=5):
 
         np.save(data_dir + 'X_validation' + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold), X_val)
         np.save(data_dir + 'Y_validation' + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold), Y_val)
+
+if __name__ == "__main__":
+    main()
