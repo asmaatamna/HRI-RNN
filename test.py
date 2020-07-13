@@ -6,6 +6,35 @@ import modules
 import hri_dataset
 
 
+def test_model(model, test_dataloader):
+    """
+    Evaluates model on test data loaded by test_dataloader
+    :param model: Model to evaluate
+    :param test_dataloader: Loads test data
+    :return: Test accuracy, F1 score, precision, recall, and ROC AUC score
+    """
+
+    model.eval()
+
+    test_data, test_target = next(iter(test_dataloader))
+    test_output = model(test_data.permute(1, 0, 2))
+
+    # Accuracy
+    accuracy = sklearn.metrics.accuracy_score(test_target.numpy(), torch.round(test_output).detach().numpy())
+
+    # F1 score
+    F1_score = sklearn.metrics.f1_score(test_target.numpy(), torch.round(test_output).detach().numpy())
+
+    # Precision and recall
+    precision = sklearn.metrics.precision_score(test_target.numpy(), torch.round(test_output).detach().numpy())
+    recall = sklearn.metrics.recall_score(test_target.numpy(), torch.round(test_output).detach().numpy())
+
+    # ROC AUC score
+    roc_auc_score = sklearn.metrics.roc_auc_score(test_target.numpy(), test_output.detach().numpy())
+
+    return accuracy, F1_score, precision, recall, roc_auc_score
+
+
 def main():
 
     # Parse command line arguments
@@ -98,35 +127,6 @@ def main():
     file.write("ROC AUC score: {:.2f} ± {:.3f}".format(np.mean(100 * roc_auc_scores), np.std(100 * roc_auc_scores)))
     file.write("Accuracy: {:.2f} ± {:.3f}".format(np.mean(100 * accuracies), np.std(100 * accuracies)))
     file.close()
-
-
-def test_model(model, test_dataloader):
-    """
-    Evaluates model on test data loaded by test_dataloader
-    :param model: Model to evaluate
-    :param test_dataloader: Loads test data
-    :return: Test accuracy, F1 score, precision, recall, and ROC AUC score
-    """
-
-    model.eval()
-
-    test_data, test_target = next(iter(test_dataloader))
-    test_output = model(test_data.permute(1, 0, 2))
-
-    # Accuracy
-    accuracy = sklearn.metrics.accuracy_score(test_target.numpy(), torch.round(test_output).detach().numpy())
-
-    # F1 score
-    F1_score = sklearn.metrics.f1_score(test_target.numpy(), torch.round(test_output).detach().numpy())
-
-    # Precision and recall
-    precision = sklearn.metrics.precision_score(test_target.numpy(), torch.round(test_output).detach().numpy())
-    recall = sklearn.metrics.recall_score(test_target.numpy(), torch.round(test_output).detach().numpy())
-
-    # ROC AUC score
-    roc_auc_score = sklearn.metrics.roc_auc_score(test_target.numpy(), test_output.detach().numpy())
-
-    return accuracy, F1_score, precision, recall, roc_auc_score
 
 
 if __name__ == "__main__":

@@ -6,25 +6,6 @@ from sklearn import preprocessing
 import argparse
 
 
-def main():
-
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description='Create cross validation data folds (train, validation, test)')
-    parser.add_argument('--tau', type=int, default=5)
-    parser.add_argument('--eta', type=int, default=2)
-    parser.add_argument('--n_folds', type=int, default=5)
-
-    args = parser.parse_args()
-
-    # HRI data directory
-    data_dir = './HRI-data/'
-
-    if args.n_folds:
-        split_data_n_folds(data_dir, args.tau, args.eta, args.n_folds)
-    else:
-        split_data_n_folds(data_dir, args.tau, args.eta)
-
-
 def split_data_n_folds(data_dir, tau, eta, n_folds=5, seed=5):
     """
     Prepares cross-validation data by splitting the original HRI dataset into train, validation,
@@ -95,6 +76,26 @@ def split_data_n_folds(data_dir, tau, eta, n_folds=5, seed=5):
 
         np.save(data_dir + 'X_validation' + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold), X_val)
         np.save(data_dir + 'Y_validation' + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold), Y_val)
+
+
+def main():
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Create cross validation data folds (train, validation, test)')
+    parser.add_argument('--tau', type=int, default=5)
+    parser.add_argument('--eta', type=int, default=2)
+    parser.add_argument('--n_folds', type=int, default=5)
+
+    args = parser.parse_args()
+
+    # HRI data directory
+    data_dir = './HRI-data/'
+
+    if args.n_folds:
+        split_data_n_folds(data_dir, args.tau, args.eta, args.n_folds)
+    else:
+        split_data_n_folds(data_dir, args.tau, args.eta)
+
 
 if __name__ == "__main__":
     main()
