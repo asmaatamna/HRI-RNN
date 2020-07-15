@@ -24,4 +24,6 @@ This code is organized as follows:
 - `prepare_cross_validation_folds.py`: allows to split the dataset into `k` train, test, and validation folds (`k`-fold cross validation)
 - `hri_dataset.py`: wraps HRI data in a `PyTorch` dataset so that it can be easily used in the training loop
 - `modules.py`: contains implementation of HRI-RNN's architecture, as well as a simple GRU baseline
-- `test.py`:
+- `train.py`: trains **HRI-RNN** on one data fold and saves the best model (on validation set)
+- `test.py`: evaluates the performance of **HRI-RNN** on test sets
+- `Legacy`: directory containing data preprocessing code written by **A. Ben Youssef**
