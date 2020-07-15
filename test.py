@@ -80,11 +80,9 @@ def main():
     for fold in np.arange(1, args.n_folds + 1):
         # Load test data
         X_test = np.load(
-            data_dir + 'X_test' + '_tau_' + str(args.tau) + '_eta_' + str(args.eta) + '_fold_' + str(fold) +
-            '.npy', allow_pickle=True)
-        Y_test = np.load(
-            data_dir + 'Y_test' + '_tau_' + str(args.tau) + '_eta_' + str(args.eta) + '_fold_' + str(fold) +
-            '.npy', allow_pickle=True)
+            data_dir + 'X_test' + '_tau_' + str(args.tau) + '_fold_' + str(fold) + '.npy', allow_pickle=True)
+        Y_test = np.load(data_dir + 'Y_test' + '_tau_' + str(args.tau) + '_eta_' + str(args.eta) + '_fold_' +
+                         str(fold) + '.npy', allow_pickle=True)
 
         # Set batch size
         batch_size = len(Y_test)

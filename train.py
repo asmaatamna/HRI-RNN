@@ -154,13 +154,13 @@ def main():
     # If true, robot audio is masked in SimpleRNN
     user_data_only = False
 
-    X_train = np.load(data_dir + 'X_train' + '_tau_' + str(args.tau) + '_eta_' + str(args.eta) + '_fold_' +
-                      str(args.fold) + '.npy', allow_pickle=True)
+    X_train = np.load(data_dir + 'X_train' + '_tau_' + str(args.tau) + '_fold_' + str(args.fold) + '.npy',
+                      allow_pickle=True)
     Y_train = np.load(data_dir + 'Y_train' + '_tau_' + str(args.tau) + '_eta_' + str(args.eta) + '_fold_' +
                       str(args.fold) + '.npy', allow_pickle=True)
 
-    X_val = np.load(data_dir + 'X_validation' + '_tau_' + str(args.tau) + '_eta_' + str(args.eta) + '_fold_' +
-                    str(args.fold) + '.npy', allow_pickle=True)
+    X_val = np.load(data_dir + 'X_validation' + '_tau_' + str(args.tau) + '_fold_' + str(args.fold) + '.npy',
+                    allow_pickle=True)
     Y_val = np.load(data_dir + 'Y_validation' + '_tau_' + str(args.tau) + '_eta_' + str(args.eta) + '_fold_' +
                     str(args.fold) + '.npy', allow_pickle=True)
 

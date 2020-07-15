@@ -19,7 +19,7 @@ def split_data_n_folds(data_dir, tau, eta, n_folds=5, seed=5):
     """
 
     # Load HRI data
-    X_all_users = np.load(data_dir + 'X_all_users_tau_' + str(tau) + '_eta_' + str(eta) + '.npy', allow_pickle=True)
+    X_all_users = np.load(data_dir + 'X_all_users_tau_' + str(tau) + '.npy', allow_pickle=True)
     Y_all_users = np.load(data_dir + 'Y_all_users_tau_' + str(tau) + '_eta_' + str(eta) + '.npy', allow_pickle=True)
 
     # Select train & test data (test user IDs & train user IDs)
@@ -68,13 +68,13 @@ def split_data_n_folds(data_dir, tau, eta, n_folds=5, seed=5):
         X_val = np.asarray([scaler.transform(a) for a in X_val])
 
         # Save created train, validation, and test data folds
-        np.save(data_dir + 'X_train' + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold), X_train)
+        np.save(data_dir + 'X_train' + '_tau_' + str(tau) + '_fold_' + str(fold), X_train)
         np.save(data_dir + 'Y_train' + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold), Y_train)
 
-        np.save(data_dir + 'X_test' + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold), X_test)
+        np.save(data_dir + 'X_test' + '_tau_' + str(tau) + '_fold_' + str(fold), X_test)
         np.save(data_dir + 'Y_test' + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold), Y_test)
 
-        np.save(data_dir + 'X_validation' + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold), X_val)
+        np.save(data_dir + 'X_validation' + '_tau_' + str(tau) + '_fold_' + str(fold), X_val)
         np.save(data_dir + 'Y_validation' + '_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold), Y_val)
 
 

@@ -39,17 +39,17 @@ def sed_ratio_over_all_data_folds(tau=5, eta=2, n_folds=5, data_dir='./HRI-data/
         print("     Validation data: {:.2f}".format(ratio_positive_class(Y_validation)))
 
 
-def sed_ratio_vs_tau(tau_list=[5, 10, 20, 30, 40], eta=2):
+def sed_ratio_vs_tau(tau_list=[5, 10, 20, 30, 40], eta_list=[2, 4, 8, 12, 16]):
     """
     :param tau_list: List of HRI datasets to process
-    :param eta: SED labeling parameter
+    :param eta_list: List of SED labeling parameters
     :return: Prints the % of SED labels in HRI (overall) datasets with sequence lengths defined in tau_list
     """
-    for tau in tau_list:
+    for tau, eta in zip(tau_list, eta_list):
         Y_all_users = np.concatenate(np.load('./HRI-data/Y_all_users_tau_' + str(tau) + '_eta_' + str(eta) + '.npy',
                                              allow_pickle=True))
-        print("SED ratio in HRI data with tau = {:} and eta = {:}: {:}".format(tau, eta,
-                                                                               ratio_positive_class(Y_all_users)))
+        print("SED ratio in HRI data with tau = {:} and eta = {:}: {:.2f} %".format(tau, eta,
+                                                                                    ratio_positive_class(Y_all_users)))
 
 
 def ratio_sequences_where_robot_speaks(hri_data):
@@ -62,10 +62,9 @@ def ratio_sequences_where_robot_speaks(hri_data):
     return 100 * sum(res) / len(res)
 
 
-def ratio_sequences_where_robot_speaks_over_all_data_folds(tau=5, eta=2, n_folds=5, data_dir='./HRI-data/'):
+def ratio_sequences_where_robot_speaks_over_all_data_folds(tau=5, n_folds=5, data_dir='./HRI-data/'):
     """
     :param tau: Length of data sequences in seconds
-    :param eta: Length of backward time horizon used for SED annotation (in seconds)
     :param n_folds: Number of cross-validation data folds
     :param data_dir: directory containing HRI data
     :return: Ratio of sequences where the robot speaks at least once in train, test, and validation data for each
@@ -76,11 +75,11 @@ def ratio_sequences_where_robot_speaks_over_all_data_folds(tau=5, eta=2, n_folds
     val_ratios = []
 
     for fold in np.arange(1, n_folds + 1):
-        X_train = np.load(data_dir + 'X_train_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold) + '.npy',
+        X_train = np.load(data_dir + 'X_train_tau_' + str(tau) + '_fold_' + str(fold) + '.npy',
                           allow_pickle=True)
-        X_test = np.load(data_dir + 'X_test_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold) + '.npy',
+        X_test = np.load(data_dir + 'X_test_tau_' + str(tau) + '_fold_' + str(fold) + '.npy',
                          allow_pickle=True)
-        X_val = np.load(data_dir + 'X_validation_tau_' + str(tau) + '_eta_' + str(eta) + '_fold_' + str(fold) + '.npy',
+        X_val = np.load(data_dir + 'X_validation_tau_' + str(tau) + '_fold_' + str(fold) + '.npy',
                         allow_pickle=True)
 
         train_ratios.append(ratio_sequences_where_robot_speaks(X_train))
@@ -90,10 +89,9 @@ def ratio_sequences_where_robot_speaks_over_all_data_folds(tau=5, eta=2, n_folds
     return train_ratios, test_ratios, val_ratios
 
 
-def plot_ratio_sequences_where_robot_speaks_vs_tau(tau_list=[5, 10, 20, 30, 40], eta=2, n_folds=None):
+def plot_ratio_sequences_where_robot_speaks_vs_tau(tau_list=[5, 10, 20, 30, 40], n_folds=None):
     """
     :param tau_list: Sequence length (in sec) defining HRI datasets to go through
-    :param eta: SED labeling parameter
     :param n_folds: Number of cross-validation folds
     :return: Plots the % of sequences where the robot speaks for all train, test, and validation data folds and all
     values in tau_list if n_folds. Otherwise, it does it for the non-split HRI datasets
@@ -124,8 +122,7 @@ def plot_ratio_sequences_where_robot_speaks_vs_tau(tau_list=[5, 10, 20, 30, 40],
         plt.show()
     else:
         for tau in tau_list:
-            X_all_users = np.concatenate(np.load('./HRI-data/X_all_users_tau_' + str(tau) + '_eta_' + str(eta) + '.npy',
-                                                 allow_pickle=True))
+            X_all_users = np.concatenate(np.load('./HRI-data/X_all_users_tau_' + str(tau) + '.npy', allow_pickle=True))
             list_ratios.append(ratio_sequences_where_robot_speaks(X_all_users))
         plt.plot(tau_list, list_ratios, marker="o")
         plt.xlabel(r'$\tau$' + " (sec)")
@@ -146,7 +143,7 @@ def distribution_robot_speaking_duration(hri_data):
     return res
 
 
-def plot_distribution_robot_speaking_duration_vs_tau(tau_list=[5, 10, 20, 30, 40], eta=2, n_folds=None):
+def plot_distribution_robot_speaking_duration_vs_tau(tau_list=[5, 10, 20, 30, 40], n_folds=None):
     """
     :param tau_list: Sequence length (in sec) defining HRI datasets to go through
     :param eta: SED labeling parameter
@@ -160,8 +157,7 @@ def plot_distribution_robot_speaking_duration_vs_tau(tau_list=[5, 10, 20, 30, 40
         pass  # TODO: To be implemented
     else:
         for tau in tau_list:
-            X_all_users = np.concatenate(np.load('./HRI-data/X_all_users_tau_' + str(tau) + '_eta_' + str(eta) + '.npy',
-                                                 allow_pickle=True))
+            X_all_users = np.concatenate(np.load('./HRI-data/X_all_users_tau_' + str(tau) + '.npy', allow_pickle=True))
             list_ecdfs.append(ECDF(distribution_robot_speaking_duration(X_all_users)))
 
         for i, tau in enumerate(tau_list):
@@ -185,7 +181,7 @@ def distribution_speaker_changes(hri_data):
     return [len(list(groupby(m, lambda x: x > 0))) - 1 for m in mask]
 
 
-def plot_distribution_speaker_changes_vs_tau(tau_list=[5, 10, 20, 30, 40], eta=2, n_folds=None):
+def plot_distribution_speaker_changes_vs_tau(tau_list=[5, 10, 20, 30, 40], n_folds=None):
     """
     :param tau_list: Sequence length (in sec) defining HRI datasets to go through
     :param eta: SED labeling parameter
@@ -199,8 +195,7 @@ def plot_distribution_speaker_changes_vs_tau(tau_list=[5, 10, 20, 30, 40], eta=2
         pass  # TODO: To be implemented
     else:
         for tau in tau_list:
-            X_all_users = np.concatenate(np.load('./HRI-data/X_all_users_tau_' + str(tau) + '_eta_' + str(eta) + '.npy',
-                                                 allow_pickle=True))
+            X_all_users = np.concatenate(np.load('./HRI-data/X_all_users_tau_' + str(tau) + '.npy', allow_pickle=True))
             list_ecdfs.append(ECDF(distribution_speaker_changes(X_all_users)))
 
         for i, tau in enumerate(tau_list):

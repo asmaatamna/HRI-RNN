@@ -538,7 +538,7 @@ def load_data(tau=5, eta=2):
 
 # Preprocess data then save the result as .npy files
 tau = 20
-eta = 2 # 0, 1, 2, 3, 4, 5
+eta = 2
 X_all_users, Y_all_users = load_data(tau, eta)
-np.save("X_all_users_tau_" + str(tau) + "_eta_" + str(eta), X_all_users)
+np.save("X_all_users_tau_" + str(tau), X_all_users)
 np.save("Y_all_users_tau_" + str(tau) + "_eta_" + str(eta), Y_all_users)
