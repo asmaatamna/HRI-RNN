@@ -27,3 +27,6 @@ This code is organized as follows:
 - `train.py`: trains **HRI-RNN** on one data fold and saves the best model (on validation set)
 - `test.py`: evaluates the performance of **HRI-RNN** on test sets
 - `Legacy`: directory containing data preprocessing code written by **A. Ben Youssef**
+
+## Credits
+Author of the project: **Asma Atamna**
