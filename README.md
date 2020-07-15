@@ -18,4 +18,10 @@ In order to use our code, you can clone or donwload this `GitHub` repository. Ma
 - `scikit-learn`
 
 ## Organization
-This code is organized as follows
+This code is organized as follows:
+- `HRI-data`: directory containing **UE-HRI** data sequences of various lengths and the corresponding labels after feature extraction, as well as train, test, and validation data folds (default is `5`-fold cross validation)
+- `data_utilities.py`: implements various methods for plotting statistics related to HRI data, such as the ratio of SED sequences, the distribution of the robot's speaking duration, etc
+- `prepare_cross_validation_folds.py`: allows to split the dataset into `k` train, test, and validation folds (`k`-fold cross validation)
+- `hri_dataset.py`: wraps HRI data in a `PyTorch` dataset so that it can be easily used in the training loop
+- `modules.py`: contains implementation of HRI-RNN's architecture, as well as a simple GRU baseline
+- `test.py`:
