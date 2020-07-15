@@ -36,4 +36,4 @@ python train.py
 See the function `main()` in `train.py` for hyperparameters documentation.
 
 ## Credits
-Author: **Asma Atamna**
+**Author:** Asma Atamna
