@@ -28,5 +28,12 @@ This code is organized as follows:
 - `test.py`: evaluates the performance of **HRI-RNN** on test sets
 - `Legacy`: directory containing data preprocessing code written by **A. Ben Youssef**
 
+## How to Run Code
+You can train **HRI-RNN** on one data fold with default hyperparameters by simply running:
+```
+python train.py 
+```
+See the function `main()` in `train.py` for hyperparameters documentation.
+
 ## Credits
-Author of the project: **Asma Atamna**
+Author: **Asma Atamna**
