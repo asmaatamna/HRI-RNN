@@ -8,11 +8,14 @@ This project contains the `Python/PyTorch` implementation of **HRI-RNN**, a recu
 Given a relatively short HRI sequence of (multimodal) feature vectors—where features characterize either the user or the robot, we want to label the sequence as `1` if it presents signs of user's engagement decrease (SED) or `0` otherwise.
 
 ## Dataset
-We use the **UE-HRI** dataset to train and test **HRI-RNN**. The `Python` script preprocessing raw HRI data can be found in the `Legacy` directory. For more details on feature extraction and preprocessing, we refer the user to **Ben Youssef et al.**'s work, as it is outside of the scope of this project.
+We use the **UE-HRI** dataset to train and test **HRI-RNN**. The `Python` script preprocessing raw HRI data can be found in the `Legacy` directory. For more details on feature extraction and data preprocessing, we refer the user to **Ben Youssef et al.**'s work, as this is outside the scope of this project.
 
 ## Installation and Prerequisites
 In order to use our code, you can clone or donwload this `GitHub` repository. Make sure you have the following software/libraries installed:
-- Python 3.7
-- PyTorch
-- NumPy
-- scikit-learn
+- `Python 3.7`
+- `PyTorch`
+- `NumPy`
+- `scikit-learn`
+
+## Organization
+This code is organized as follows
