@@ -107,8 +107,8 @@ def train_model(model,
                 # Save learned model
                 torch.save(model.state_dict(), res_dir + 'Model_' + trained_model_name)
 
-                print(
-                    "Model saved at epoch {:}. Validation F1 score: {:.2f}".format(epoch + 1, best_validation_f1_score))
+                print("Model saved at epoch {:}. Validation F1 score: {:.2f}".format(epoch + 1,
+                                                                                     best_validation_f1_score))
 
     print("End of training")
 
