@@ -116,7 +116,7 @@ def plot_ratio_sequences_where_robot_speaks_vs_tau(tau_list=[5, 10, 20, 30, 40],
             axes[-1].title.set_text("Fold {:}".format(fold + 1))
             axes[-1].set_ylabel("% seq. where robot speaks")
             axes[-1].grid(True, which='both')
-            axes[-1].set_ylim(50, 100)
+            # axes[-1].set_ylim(50, 100)
         plt.xlabel(r'$\tau$' + " (sec)")
         plt.savefig("Ratio_sequences_where_robot_speaks_vs_tau_all_data_folds.pdf")
         plt.show()
@@ -162,10 +162,38 @@ def plot_distribution_robot_speaking_duration_vs_tau(tau_list=[5, 10, 20, 30, 40
 
         for i, tau in enumerate(tau_list):
             plt.plot(list_ecdfs[i].x, list_ecdfs[i].y, label=r'$\tau = {}$'.format(tau))
-        plt.xlabel("Cumulative distrib. of robot speaking duration")
+        plt.xlabel("Cumulative distrib. of robot speaking duration (in sec)")
         plt.grid(True, which='both')
         plt.legend(loc='best', fancybox=True, framealpha=0.5)
         plt.savefig("ECDF_robot_speaking_duration_vs_tau.pdf")
+        plt.show()
+
+
+def plot_average_robot_speaking_duration_vs_tau(tau_list=[5, 10, 20, 30, 40], n_folds=None):
+    """
+    :param tau_list: Sequence length (in sec) defining HRI datasets to go through
+    :param eta: SED labeling parameter
+    :param n_folds: Number of cross-validation folds
+    :return: Plots the average robot's speaking duration in one HRI sequence, along with the variance, for all
+    the datasets indicated in tau_list
+    """
+    avg_durations = []
+    std_devs = []
+
+    if n_folds:
+        pass  # TODO: To be implemented
+    else:
+        for tau in tau_list:
+            X_all_users = np.concatenate(np.load('./HRI-data/X_all_users_tau_' + str(tau) + '.npy', allow_pickle=True))
+            distrib = distribution_robot_speaking_duration(X_all_users)
+            avg_durations.append(np.mean(distrib))
+            std_devs.append(np.std(distrib))
+
+        plt.errorbar(tau_list, avg_durations, yerr=std_devs, capsize=5, marker='o')
+        plt.xlabel("Sequence length (in sec)")
+        plt.ylabel("Average robot speaking duration (in sec)")
+        plt.grid(True, which='both')
+        plt.savefig("Average_robot_speaking_duration_vs_tau.pdf")
         plt.show()
 
 
@@ -207,6 +235,34 @@ def plot_distribution_speaker_changes_vs_tau(tau_list=[5, 10, 20, 30, 40], n_fol
         plt.show()
 
 
+def plot_average_speaker_changes_vs_tau(tau_list=[5, 10, 20, 30, 40], n_folds=None):
+    """
+    :param tau_list: Sequence length (in sec) defining HRI datasets to go through
+    :param eta: SED labeling parameter
+    :param n_folds: Number of cross-validation folds
+    :return: Plots speaker changes in one HRI sequence on average for all the datasets indicated in tau_list, along with
+    the standard deviation
+    """
+    avg_changes = []
+    std_devs = []
+
+    if n_folds:
+        pass  # TODO: To be implemented
+    else:
+        for tau in tau_list:
+            X_all_users = np.concatenate(np.load('./HRI-data/X_all_users_tau_' + str(tau) + '.npy', allow_pickle=True))
+            distrib = distribution_speaker_changes(X_all_users)
+            avg_changes.append(np.mean(distrib))
+            std_devs.append(np.std(distrib))
+
+        plt.errorbar(tau_list, avg_changes, yerr=std_devs, capsize=5, marker='o')
+        plt.xlabel("Sequence length (in sec)")
+        plt.ylabel("Average speaker changes in one HRI seq.")
+        plt.grid(True, which='both')
+        plt.savefig("Average_speaker_changes_vs_tau.pdf")
+        plt.show()
+
+
 def main():
     parser = argparse.ArgumentParser(description='Functions for computing various statistics on HRI data')
     parser.add_argument('--selection', type=int, default=1)
@@ -214,10 +270,20 @@ def main():
     parser.add_argument('--eta', type=int, default=2)
     parser.add_argument('--n_folds', type=int, default=10)
     parser.add_argument('--data_dir', type=str, default='./HRI-data/')
+    args = parser.parse_args()
 
-    #  TODO: To be completed
-
-    sed_ratio_vs_tau()
+    if args.selection == 1:
+        sed_ratio_vs_tau(eta_list=[2, 2, 2, 2, 2])
+    elif args.selection == 2:
+        plot_ratio_sequences_where_robot_speaks_vs_tau()
+    elif args.selection == 3:
+        plot_distribution_robot_speaking_duration_vs_tau()
+    elif args.selection == 4:
+        plot_average_robot_speaking_duration_vs_tau()
+    elif args.selection == 5:
+        plot_distribution_speaker_changes_vs_tau()
+    else:
+        plot_average_speaker_changes_vs_tau()
 
 
 if __name__ == "__main__":
