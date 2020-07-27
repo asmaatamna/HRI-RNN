@@ -37,6 +37,9 @@ python train.py
 ```
 See the function `main()` in `train.py` for hyperparameters documentation.
 
+### Caveat
+The default location for the result files returned by the code is the directory `./Output/`, which should be either created beforehand or customized by the user. 
+
 ## Credits
 **Author:** Asma Atamna
 
