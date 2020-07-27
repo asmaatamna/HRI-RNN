@@ -39,3 +39,5 @@ See the function `main()` in `train.py` for hyperparameters documentation.
 
 ## Credits
 **Author:** Asma Atamna
+
+**Original paper:** *HRI-RNN: A User-Robot Dynamics-Oriented RNN for Engagement Decrease Detection*. A. Atamna and C. Clavel. INTERSPEECH 2020
