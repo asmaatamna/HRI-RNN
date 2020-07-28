@@ -198,7 +198,8 @@ class HriRNNCell(nn.Module):
         condition = data[:, -1] > 0
         indices_robot_is_speaking = torch.nonzero(condition, as_tuple=True)[0]
 
-        # Prepare user data for user state GRU cell. Audio data (features 32 to 63) is replaced with zeros if it belongs to the robot
+        # Prepare user data for user state GRU cell. Audio data (features 32 to 63) is replaced with zeros if it belongs
+        # to the robot
         data_u = data.clone()
         data_u[indices_robot_is_speaking][:, 32:64] = torch.zeros(indices_robot_is_speaking.size()[0], 64 - 32)
 
