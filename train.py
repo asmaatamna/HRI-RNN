@@ -69,11 +69,11 @@ def train_model(model,
             output = model(data.to(device).permute(1, 0, 2))
 
             # Compute loss, gradients, and update model parameters
-            if weights:
+            if weights is None:
+                loss = criterion(output, target.to(device).double().view(-1, 1))
+            else:
                 loss = criterion(output, target.to(device).double().view(-1, 1),
                                  weight=weights[target.long()].double().view(-1, 1))
-            else:
-                loss = criterion(output, target.to(device).double().view(-1, 1))
 
             loss.backward()
             optimizer.step()
@@ -207,10 +207,10 @@ def main():
     else:
         attention = ''
 
-    if not user_data_only and args.architecture == 'SimpleRNN':
-        udata = ''
-    else:
+    if user_data_only and args.architecture == 'SimpleRNN':
         udata = 'user_data_only_'
+    else:
+        udata = ''
 
     model_name = args.architecture + attention + '_tau_' + str(args.tau) + '_eta_' + str(args.eta) + '_hdim_' + \
                  str(args.hidden_dims) + '_lr_' + str(args.lr) + '_weight_decay_' + str(args.weight_decay) + '_' + \
