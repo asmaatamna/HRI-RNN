@@ -206,7 +206,7 @@ class HriRNNCell(nn.Module):
         # Create and initialize context vectors tensor. Size: (batch, c_dim)
         c = torch.zeros(data.size()[0], self.c_dim).double() if c_hist.size()[0] == 0 else c_hist[-1]
 
-        # Update context only if the robot is speaking. Otherwise, we keep past the previous context
+        # Update context only if the robot is speaking. Otherwise, we keep the previous context
         c[indices_robot_is_speaking] = self.context_cell(
             torch.cat((data[indices_robot_is_speaking][:, 32:64], u_prev[indices_robot_is_speaking]), dim=1),
             torch.zeros(indices_robot_is_speaking.size()[0], self.c_dim).double() if c_hist.size()[0] == 0 else
