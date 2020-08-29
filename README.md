@@ -23,7 +23,7 @@ In order to use our code, you can clone or donwload this `GitHub` repository. Ma
 
 ## Organization
 This code is organized as follows:
-- `Data`: can be downloaded [here](https://drive.google.com/file/d/11_msNw_h3UM_PovtY9frdWZfgzAaxvMi/view?usp=sharing). It corresponds to **UE-HRI** interaction sequences of `5` sec and the corresponding labels, computed from the last `2` sec of interaction. Default data repository name and location should be `./HRI-data/`.
+- `Data`: can be downloaded [here](https://drive.google.com/file/d/11_msNw_h3UM_PovtY9frdWZfgzAaxvMi/view?usp=sharing). It corresponds to **UE-HRI** interaction sequences of `5 sec` and the corresponding labels, computed from the last `2 sec` of interaction. Default data repository name and location should be `./HRI-data/`.
 - `data_utilities.py`: implements various methods for plotting statistics related to HRI data, such as the ratio of SED sequences, the distribution of the robot's speaking duration, etc
 - `prepare_cross_validation_folds.py`: allows to split the dataset into `k` train, test, and validation folds (`k`-fold cross validation)
 - `hri_dataset.py`: wraps HRI data in a `PyTorch` dataset so that it can be easily used in the training loop
