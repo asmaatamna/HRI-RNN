@@ -12,7 +12,7 @@ Given a relatively short HRI sequence of (multimodal) feature vectors—where fe
 ## Dataset
 We use the **UE-HRI** dataset to train and test **HRI-RNN**. The `Python` script preprocessing raw HRI data can be found in the `Legacy` directory. For more details on feature extraction and data preprocessing, we refer the user to **Ben Youssef et al.**'s work, as this is outside the scope of this project.
 
-The data (HRI sequences after feature extraction and the corresponding labels) we used for our INTERSPEECH 2020 paper can be downloaded [here](https://drive.google.com/file/d/11_msNw_h3UM_PovtY9frdWZfgzAaxvMi/view?usp=sharing).
+The data we used for our INTERSPEECH 2020 paper (HRI sequences after feature extraction and the corresponding labels) can be downloaded [here](https://drive.google.com/file/d/11_msNw_h3UM_PovtY9frdWZfgzAaxvMi/view?usp=sharing).
 
 ## Installation and Prerequisites
 In order to use our code, you can clone or donwload this `GitHub` repository. Make sure you have the following software/libraries installed:
@@ -23,7 +23,7 @@ In order to use our code, you can clone or donwload this `GitHub` repository. Ma
 
 ## Organization
 This code is organized as follows:
-- `HRI-data`: directory containing **UE-HRI** data sequences of various lengths and the corresponding labels after feature extraction, as well as train, test, and validation data folds (default is `5`-fold cross validation)
+- `Data`: can be downloaded [here](https://drive.google.com/file/d/11_msNw_h3UM_PovtY9frdWZfgzAaxvMi/view?usp=sharing). It corresponds to **UE-HRI** interaction sequences of `5` sec and the corresponding labels, computed from the last `2` sec of interaction. Default data repository name and location should be `./HRI-data/`.
 - `data_utilities.py`: implements various methods for plotting statistics related to HRI data, such as the ratio of SED sequences, the distribution of the robot's speaking duration, etc
 - `prepare_cross_validation_folds.py`: allows to split the dataset into `k` train, test, and validation folds (`k`-fold cross validation)
 - `hri_dataset.py`: wraps HRI data in a `PyTorch` dataset so that it can be easily used in the training loop
@@ -33,6 +33,12 @@ This code is organized as follows:
 - `Legacy`: directory containing data preprocessing code written by **A. Ben Youssef**
 
 ## How to Run Code
+First, make sure to generate train, test, and validation data folds by running:
+```
+python prepare_cross_validation_folds.py
+```
+Default is `5`-fold cross-validation.
+
 You can train **HRI-RNN** on one data fold with default hyperparameters by simply running:
 ```
 python train.py 
