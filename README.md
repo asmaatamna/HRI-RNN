@@ -12,6 +12,8 @@ Given a relatively short HRI sequence of (multimodal) feature vectors—where fe
 ## Dataset
 We use the **UE-HRI** dataset to train and test **HRI-RNN**. The `Python` script preprocessing raw HRI data can be found in the `Legacy` directory. For more details on feature extraction and data preprocessing, we refer the user to **Ben Youssef et al.**'s work, as this is outside the scope of this project.
 
+The extracted features (HRI sequences and SED labels) used in our INTERSPEECH 2020 paper can be downloaded [here](https://drive.google.com/file/d/11_msNw_h3UM_PovtY9frdWZfgzAaxvMi/view?usp=sharing).
+
 ## Installation and Prerequisites
 In order to use our code, you can clone or donwload this `GitHub` repository. Make sure you have the following software/libraries installed:
 - `Python 3.7`
