@@ -537,7 +537,7 @@ def load_data(tau=5, eta=2):
     return np.asarray(X_all_users), np.asarray(Y_all_users)
 
 # Preprocess data then save the result as .npy files
-tau = 20
+tau = 5
 eta = 2
 X_all_users, Y_all_users = load_data(tau, eta)
 np.save("X_all_users_tau_" + str(tau), X_all_users)
