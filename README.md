@@ -12,7 +12,7 @@ Given a relatively short HRI sequence of (multimodal) feature vectors—where fe
 ## Dataset
 We use the **UE-HRI** dataset to train and test **HRI-RNN**. The `Python` script preprocessing raw HRI data can be found in the `Legacy` directory. For more details on feature extraction and data preprocessing, we refer the user to **Ben Youssef et al.**'s work, as this is outside the scope of this project.
 
-The data we used for our INTERSPEECH 2020 paper (HRI sequences after feature extraction and the corresponding labels) can be downloaded [here](https://drive.google.com/file/d/11_msNw_h3UM_PovtY9frdWZfgzAaxvMi/view?usp=sharing).
+The data we used for our INTERSPEECH 2020 paper (HRI sequences after feature extraction and the corresponding labels) can be downloaded [here](https://drive.google.com/drive/folders/1ga896Q6E3I4P2PkAk-akvpt_7MEiR0Rh?usp=sharing).
 
 ## Installation and Prerequisites
 In order to use our code, you can clone or donwload this `GitHub` repository. Make sure you have the following software/libraries installed:
